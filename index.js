@@ -10,6 +10,14 @@ var url = require('url');
 var StringDecoder = require('string_decoder').StringDecoder;
 var config = require('./config');
 var fs = require('fs');
+var _data = require('./lib/data')
+
+
+// TESTING
+// @TODO delete this
+_data.delete('test', 'newFile', function(err) {
+    console.log('This was the error', err);
+});
 
 // The server should respond to all requests with a string
 // На каждый запрос вызывается колбэк с параметрами из запроса

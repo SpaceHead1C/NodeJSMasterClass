@@ -14,6 +14,11 @@ var _data = require('./lib/data');
 var handlers = require('./lib/handlers');
 var helpers = require('./lib/helpers');
 
+// @TODO GET RID OF THIS
+helpers.sendTwilioSms('4158375309', 'hello', function(err) {
+    console.log('This was the error', err);
+});
+
 
 // The server should respond to all requests with a string
 // На каждый запрос вызывается колбэк с параметрами из запроса

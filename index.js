@@ -6,6 +6,7 @@
 // Dependencies
 var http = require('http');
 var url = require('url');
+var StringDecoder = require('string_decoder').StringDecoder;
 
 // The server should respond to all requests with a string
 // На каждый запрос вызывается колбэк с параметрами из запроса
@@ -19,7 +20,7 @@ var server = http.createServer(function(req, res) {
     var trimmedPath = path.replace(/^\/+|\/+$/g, '');
 
     // Get the query string as an object
-    var queryStringObject = parsedUrl.query; // look at 'true' parameter in url.parse()
+    var queryStringObject = parsedUrl.query; // look at 'true' parameter for url.parse()
 
     // Get the HTTP method
     var method = req.method.toLowerCase();
@@ -27,13 +28,24 @@ var server = http.createServer(function(req, res) {
     // Get the headers as an object
     var headers = req.headers;
 
-    // Send the response
-    res.end('Hello, World\n');
+    // Get the payload, if any
+    var decoder = new StringDecoder('utf-8');
+    var buffer = '';
+    req.on('data', function(data) {
+        buffer += decoder.write(data);
+    });
+    req.on('end', function() {
+        buffer += decoder.end();
 
-    //Log the request data
-    console.log('Request recieved on path: ' + trimmedPath + ' with method ' + method + 
-        ' and with these query string parameters', queryStringObject);
-    console.log('Request received with these headers', headers);
+        // Send the response
+        res.end('Hello, World\n');
+
+        //Log the request data
+        console.log('Request recieved on path ' + trimmedPath + ' with method ' + method + 
+            ' and with these query string parameters:', queryStringObject);
+        console.log('Request received with these headers:', headers);
+        console.log('Request received with this payload:', buffer);
+    });
 });
 
 // Start the server, have it listen on port 3000

@@ -80,6 +80,35 @@ app.client.request = function(headers, path, method, queryStringObject, payload,
     xhr.send(payloadString);
 }
 
+// Bind the logout button
+app.bindLogoutButton = function() {
+    document.getElementById("logoutButton").addEventListener("click", function(e) {
+        // Stop it from redirecting anywhere
+        e.preventDefault();
+
+        // Log the user out
+        app.logUserOut();
+    });
+}
+
+// Log the user out then redirect them
+app.logUserOut = function() {
+    // Get the current token id
+    var tokenId = typeof(app.config.sessionToken.id) == 'string' ? app.config.sessionToken.id : false;
+
+    // Send the current token to the tokens endpoint to delete it
+    var queryStringObject = {
+        'id': tokenId
+    };
+    app.client.request(undefined, 'api/tokens', 'DELETE', queryStringObject, undefined, function(statusCode, responsePayload) {
+        // Set the app.config token as false
+        app.setSessionToken(false);
+
+        // Send the user to the logged out page
+        window.location = '/session/deleted';
+    });
+}
+
 // Bind the forms
 app.bindForms = function () {
     if (document.querySelector("form")) {
@@ -104,17 +133,22 @@ app.bindForms = function () {
             }
 
             // Call the API
-            app.client.request(undefined, path, method, undefined, payload, function (statusCode, responsePayload) {
+            app.client.request(undefined, path, method, undefined, payload, function(statusCode, responsePayload) {
                 // Display an error on the form if needed
                 if (statusCode !== 200) {
-                    // Try to get the error from the api, or set a default error message
-                    var error = typeof (responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again';
+                    if (statusCode == 403) {
+                        // Log the user out
+                        app.logUserOut();
+                    } else {
+                        // Try to get the error from the api, or set a default error message
+                        var error = typeof (responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again';
 
-                    // Set the formError field with the error text
-                    document.querySelector("#" + formId + " .formError").innerHTML = error;
+                        // Set the formError field with the error text
+                        document.querySelector("#" + formId + " .formError").innerHTML = error;
 
-                    // Show (unhide) the form error field on the form
-                    document.querySelector("#" + formId + " .formError").style.display = 'block';
+                        // Show (unhide) the form error field on the form
+                        document.querySelector("#" + formId + " .formError").style.display = 'block';
+                    }
                 } else {
                     // If successful, send to form response processor
                     app.formResponseProcessor(formId, payload, responsePayload);
@@ -248,6 +282,9 @@ app.tokenRenewalLoop = function() {
 app.init = function() {
     // Bind all form submissions
     app.bindForms();
+
+    // Bind logout button
+    app.bindLogoutButton();
 
     // Get the token from localstorage
     app.getSessionToken();

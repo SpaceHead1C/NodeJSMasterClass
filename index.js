@@ -23,7 +23,7 @@ app.init = function() {
     // Start the CLI, but make sure it starts last
     setTimeout(function() {
         cli.init();
-    }, 500);
+    }, 50);
 }
 
 // Execute
